@@ -1,0 +1,243 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "8b7bd295-0ece-46a1-a7d0-e3af1de4a8c1",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -440,
+        100
+      ],
+      "webhookId": "telegram-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "iHj2hI5CRwMduXyr",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.message.photo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "exists",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6c7d13ca-d8f2-494a-bb87-aced0647d594",
+      "name": "Check if Photo",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -220,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[$json.message.photo.length - 1].file_id }}"
+      },
+      "id": "76e2a1ff-6ba6-47b2-a096-28f6468fab12",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d72243ce-57aa-490a-88ab-f5dcbccfb5e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "iHj2hI5CRwMduXyr",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "binaryData": true,
+        "additionalFields": {}
+      },
+      "id": "66678bd7-d9f8-4ae3-a7df-55f3bd386473",
+      "name": "Send Processed Image",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        0
+      ],
+      "webhookId": "ce649ada-1fa5-440a-9868-7eabc8facd3a",
+      "credentials": {
+        "telegramApi": {
+          "id": "iHj2hI5CRwMduXyr",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "Sorry, I can only process images. Please send me a photo to overlay on the template.",
+        "additionalFields": {
+          "reply_to_message_id": "={{ $json.message.message_id }}"
+        }
+      },
+      "id": "2e463c6f-573c-43fd-83d5-b8476eb721ec",
+      "name": "Send Error Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "2036ab63-c112-4011-b200-5290b68a5129",
+      "credentials": {
+        "telegramApi": {
+          "id": "iHj2hI5CRwMduXyr",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=http://127.0.0.1:8000/output/{{ $json[\"output_path\"].split(/[/\\\\]/).pop() }}",
+        "allowUnauthorizedCerts": true,
+        "responseFormat": "file",
+        "options": {}
+      },
+      "id": "d66ef6d5-08b7-4242-b2d4-86ab4975bb86",
+      "name": "Download Processed Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [
+        420,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/process-image",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "text",
+              "value": "={{ $('Telegram Trigger').item.json.message.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        -100
+      ],
+      "id": "d257960d-5b68-4b51-9bc4-92960b8a7df3",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check if Photo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Photo": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Processed Image": {
+      "main": [
+        [
+          {
+            "node": "Send Processed Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Download Processed Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4d590254e8e8fcb3a767d2811b9b154857fcac02cb30a4d25183e9af5e96cec7"
+  }
+}
