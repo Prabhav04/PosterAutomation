@@ -67,6 +67,10 @@
    - Saved in the `output/` directory.  
 
 ---
+## Telegram Bot Working 
+![Workflow Diagram](https://github.com/Prabhav04/PosterAutomation/blob/master/Screenshot%202025-08-28%20080622.png)  
+
+
 ## Workflow in n8n
 ![Workflow Diagram](https://github.com/Prabhav04/PosterAutomation/blob/master/Screenshot%20(190).PNG)  
 
