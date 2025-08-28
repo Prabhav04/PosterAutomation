@@ -67,6 +67,9 @@
    - Saved in the `output/` directory.  
 
 ---
+## Workflow in n8n
+![Workflow Diagram](https://github.com/Prabhav04/PosterAutomation/blob/master/Screenshot%20(190).PNG)  
+
 
 ## 🖼 Example Posters
 
